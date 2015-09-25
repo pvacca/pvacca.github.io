@@ -6,11 +6,15 @@
 	background-repeat: no-repeat;
 	background-size: cover;
 }
+#cred {
+	font-size: 6vw;
+}
 .fore {
 	margin: 0 auto;
 	-moz-text-decoration-color: white; /* Code for Firefox */
 	text-decoration-color: white;
 	color: darkgray;
+	font-size: 4vw;
 }
 #footer {
 	position: fixed;
@@ -21,9 +25,15 @@
 }
 .back {
 	color: linen;
+	font-size: 3vw;
+}
+h3 {
+	font-size: 150%;
+	font-family: sans-serif;
 }
 p {
 	text-indent: 50px;
+	font-family: 'Josefin Slab', serif;
 }
 a {
 	padding-left: 1px;
