@@ -1,16 +1,21 @@
 #content {
-	position: relative;
+	position: fixed;
 	/*float: center;*/
 	right: 0;
 	top: 0;
-	width: 70%;
+	width: 77%;
+	padding-top: 1vh;
+	padding-right: 1vw;
 	/*min-height: 600px;*/
-	background-image: url(img/infrared-film-invisible-war.jpg);
+	background-image: url(../img/infrared-film-invisible-war.jpg);
 	background-repeat: no-repeat;
 	background-size: cover;
 }
 #content p {
 	padding-left: 2vw;
+}
+#content a {
+	font-size: smaller;
 }
 #cred {
 	font-size: 6vw;
@@ -29,7 +34,7 @@
 	position: fixed;
 	bottom: 0;
 	left: 0;
-	height: 5vh;
+	height: 4em;
 	width: 100%;
 }
 .back {
@@ -38,6 +43,7 @@
 	color: DarkGray;
 }
 h3 {
+	padding-left: 1vw;
 	font-size: 150%;
 	font-family: sans-serif;
 }
