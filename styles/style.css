@@ -9,6 +9,10 @@
 #cred {
 	font-size: 6vw;
 }
+#cred li {
+	display: inline;
+	list-style-type: none;
+}
 .fore {
 	margin: 0 auto;
 	-moz-text-decoration-color: white; /* Code for Firefox */
