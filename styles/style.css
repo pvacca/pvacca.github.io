@@ -1,10 +1,14 @@
+#header {
+	width: 100%;
+}
 #content {
 	position: fixed;
 	/*float: center;*/
 	right: 0;
 	top: 0;
-	width: 77%;
-	padding-top: 1vh;
+	width: 82%;
+	height: 88%;
+	/*padding-top: 1vh;*/
 	padding-right: 1vw;
 	/*min-height: 600px;*/
 	background-image: url(../img/infrared-film-invisible-war.jpg);
@@ -14,32 +18,40 @@
 #content p {
 	padding-left: 2vw;
 }
-#content a {
-	font-size: smaller;
+#presentations {
+	padding-top: 1vh;
+	padding-left: 3vw;
+}
+#presentations a {
+	font-size: 65%;
+	font-style: italic;
 }
 #cred {
+	float: left;
 	font-size: 6vw;
 }
 #cred li {
-	display: inline;
+	/*display: inline;*/
 	list-style-type: none;
 }
 .fore {
 	margin: 0 auto;
 	color: white;
 	background-color: darkgray;
-	font-size: 3vw;
+	font-size: 2.5vw;
 }
 #footer {
 	position: fixed;
 	bottom: 0;
 	left: 0;
-	height: 4em;
+	text-align: top;
+	padding-left: 5vw;
+	height: 15%;
 	width: 100%;
 }
 .back {
 	background-color: linen;
-	font-size: 3vw;
+	font-size: 1.5vw;
 	color: DarkGray;
 }
 h3 {
@@ -66,7 +78,7 @@ a:hover {
 
 /* Glyph, by Harry Roberts */
 hr.style-glyph {
-    padding: 0;
+    padding: 0 1em 0 1em;
     border: none;
     border-top: medium double #333;
     color: #333;
@@ -77,7 +89,7 @@ hr.style-glyph:after {
     display: inline-block;
     position: relative;
     top: -0.7em;
-    font-size: 1.5em;
-    padding: 0 4.25em;
+    font-size: 1.0em;
+    padding: 0 0.25em;
     /*background: white;*/
 }
