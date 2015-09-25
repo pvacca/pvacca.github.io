@@ -18,7 +18,7 @@
 	-moz-text-decoration-color: white; /* Code for Firefox */
 	text-decoration-color: white;
 	color: darkgray;
-	font-size: 4vw;
+	font-size: 3vw;
 }
 #footer {
 	position: fixed;
@@ -29,6 +29,8 @@
 }
 .back {
 	color: linen;
+	-moz-text-decoration-color: gray;
+	text-decoration-color: gray;
 	font-size: 3vw;
 }
 h3 {
