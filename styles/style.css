@@ -22,7 +22,7 @@
 	padding-top: 1vh;
 	padding-left: 3vw;
 }
-#presentations a {
+#presentations a:hover {
 	background-color: lightgray;
 }
 #presentations li a {
