@@ -34,6 +34,12 @@
 	/*display: inline;*/
 	list-style-type: none;
 }
+#cred a:link {
+	color: lightgray;
+}
+#cred a:visited {
+	color: lightgray;
+}
 .fore {
 	margin: 0 auto;
 	color: white;
