@@ -87,6 +87,10 @@ a:visited {
 a:hover {
 	color: crimson;
 }
+table {
+	font-family: 'Josefin Slab', serif;
+	font-size: 85%;
+}
 
 /* Glyph, by Harry Roberts */
 hr.style-glyph {
