@@ -92,9 +92,9 @@ table {
 	font-size: 80%;
 }
 tr {
-	padding-left: .5vw;
 	padding-right: .5vw;
-	padding-bottom: .5vw;
+	padding-bottom: 1em;
+	padding-left: .5vw;
 }
 th, td {
     border-bottom: 1px solid #ddd;
