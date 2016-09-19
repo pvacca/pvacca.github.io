@@ -91,6 +91,10 @@ table {
 	font-family: 'Josefin Slab', serif;
 	font-size: 80%;
 }
+tr {
+	padding-left: .5vw;
+	padding-right: .5vw;
+}
 
 /* Glyph, by Harry Roberts */
 hr.style-glyph {
