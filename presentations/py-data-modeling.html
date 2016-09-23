@@ -1,0 +1,361 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Data Modeling in Python</title>
+
+		<meta name="description" content="Introduction to data modeling in Python">
+		<meta name="author" content="Phil Vacca">
+
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/night.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!-- override any theme styles that try to set a border around images -->
+		<style>.reveal section img { border: 0; background: None; }</style>
+		<style>.reveal section ul { list-style-type: None; }</style>
+
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section><h2>Data Modeling in Python</h2><p><a href="https://twitter.com/PhilVacca">@PhilVacca</a></p>
+				<div align="right"><img src="img/python-logo.png" /></div>
+				</section>
+
+				<section data-background="img/PrisonerFiles.png" data-background-transition="zoom" data-background-size="800px"><h3>Data in Applications</h3>
+					<ul class="fragment"><li>Flat Files</li><li>Key / Value</li><li>Document Store</li>
+					<li>Distributed (Map/Reduce)</li><li>Relational Database</li></ul>
+				</section>
+
+				<section><h3>About This Talk</h3>
+				<p class="fragment">Concerned with relational data</p>
+				<p class="fragment">Popular ways to model in Python</p>
+				<p class="fragment">Will not talk about web app design</p>
+				<p class="fragment">Examples will use PostgreSQL</p>
+				<p class="fragment">.&nbsp;.&nbsp;.&nbsp;And you should, too&nbsp;&nbsp;<code>;)</code></p>
+				<div align="right" class="fragment fade-up current-fragment"><img src="img/pg_logo_128.png" /></div>
+				</section>
+
+				<section><h3>Traditional Data Manipulation with SQL</h3>
+				<div class="fragment"><img src="img/sv-richard-middle-out.jpg" />
+				<p>"I was watching my friends have this argument about manipulating… data, and how many… datas could one guy manipulate at once"</p></div>
+				</section>
+
+				<section><section><h3>Accessing the database with inline SQL</h3>
+				<p class="fragment">pyodbc to make connection</p>
+				<p class="fragment">DB-API <a href="https://www.python.org/dev/peps/pep-0249/">PEP-249</a></p>
+				<ul class="fragment"><li>sqllite3</li><li>psycopg2</li><li>mysql-python</li></ul>
+				</section>
+				<section><pre><code lang="python">
+import psycopg2 as pg
+
+host="192.168.99.100"
+port="5432"
+user="postgres"
+dbname="postgres"
+
+# should try / catch
+conn=pg.connect("host={} port={} user={} dbname={}".format(host, port, user, dbname))
+
+</code></pre></section>
+				<section><pre><code lang="python">
+cur = conn.cursor()
+
+cur.execute("SELECT relnamespace::regnamespace, count(*) from pg_catalog.pg_class GROUP BY relnamespace;")
+print(cur.fetchall())
+
+some_parameter="pg_type"
+cur.execute("SELECT relname from pg_catalog.pg_class WHERE relname = %s;", (some_parameter, ))
+print(cur.fetchall())
+
+conn.commit()
+
+cur.close()
+conn.close()
+
+</code></pre>
+<pre><code>
+# [('pg_catalog', 208L), ('pg_toast', 36L), ('information_schema', 67L)]
+[('pg_type',)]
+</code></pre>
+</section>
+				</section>
+
+				<section><h3>Limitations</h3>
+				<ul><li class="fragment">An implicit transaction is always in progress</li>
+				<li class="fragment">Data type mappings vary by adaptor</li>
+				<li class="fragment">Parameter mapping varies by adaptor</li>
+				<li class="fragment">DB-API has own exception hierarchy</li>
+				<li class="fragment">Not every adaptor even implements DB-API</li>
+				<li class="fragment">Encourages string munging to create SQL statements</li>
+				</ul>
+				</section>
+
+				<!--section><h3>Wouldn&apos;t it be nice if there was a standard way to interface with the db?</h3>
+				<div class="fragment"><img src="http://imgs.xkcd.com/comics/standards.png" /></div>
+				</section-->
+
+				<section><h3>Enter the ORM</h3>
+				<h4>Object Relational Mapper</h4>
+				<p class="fragment">Conceptually borrowed from OOP</p>
+				<p class="fragment">But you can use with other styles</p>
+				<p class="fragment">Consistent typing within code</p>
+				<p class="fragment">No change in code thinking (SQL is Set Based, Declarative)</p>
+				</section>
+
+				<section><h3>So everybody loves ORMs, right?</h3>
+				<div class="fragment"><img src="img/what-ORMs-taught-me.png" width=600px /></div>
+				<div class="fragment"><p><em>Object/Relational Mapping is the Vietnam of Computer Science. It represents a quagmire which starts well, gets more complicated as time passes, and before long entraps its users in a commitment that has no clear demarcation point, no clear win conditions, and no clear exit strategy.</em></p><div align="right"><a href="http://blogs.tedneward.com/post/the-vietnam-of-computer-science/"><p>--Ted Neward<br />26 June, 2006</p></a></div></div>
+				</section>
+
+				<section><h3>Common ORM Disadvantages</h3>
+					<p class="fragment">Still have to drop into SQL to handle complicated things</p>
+					<p class="fragment">Whitewashes all DB platforms to make them the &quot;same&quot;</p>
+					<p class="fragment">Impedence mismatch</p>
+				</section>
+
+				<section><h3>ORM Types</h3>
+				<p>Martin Fowler lists two types in <em>Patterns of Enterprise Application Architecture</em> (2003)</p>
+				<ul><li>Active Record pattern</li><li>Data Mapper pattern</li></ul>
+				</section>
+
+				<section><h3>Active Record</h3>
+					<p>The ORM creates a 1:1 mapping of the relational data</p>
+					<p>Each object represents one distinct row of data</p>
+					<p>Relatively light weight</p>
+					<img src="img/activerecord.png">
+				</section>
+
+				<section><h3>Data Mapper</h3>
+					<p>The ORM creates a generic layer that maps procedures to data</p>
+					<p>Each object represents a unit of work on a modelled data object (which may or may not correspond to a row of data)</p>
+					<p>Resource overhead is higher than Active Record pattern</p>
+					<img src="img/datamapper.png">
+				</section>
+
+				<section><h3>Popular Python ORMs</h3>
+				<ul class="fragment"><li>SQLObject</li>
+					<li class="fragment grow visible">SQLAlchemy</li>
+					<li class="fragment grow visible">Django ORM</li>
+					<li>PeeWee</li><li>PonyORM</li>
+				</ul>
+				</section>
+
+				<section><h3>Django ORM</h3>
+					<p class="fragment">Active Record pattern</p>
+					<p class="fragment">Written as part of Django framework (ca. 2005)</p>
+					<p class="fragment">Known for ease of use, short learning curve</p>
+					<p class="fragment">Simplifies writing easy queries (INSERT / UPDATE / DELETE)</p>
+					<p class="fragment">Takes a similar amount of code relative to SQL for writing medium difficulty queries (GROUP BY, window functions)</p>
+					<p class="fragment">But at least you get to write Python</p>
+					<p class="fragment">Cannot feasibly handle complicated queries (GROUPING SETS, DISTINCT ON, aggregated sub-queries, CTE&apos;s, etc)</p>
+				</section>
+				<section><section><h3>Other Limitations</h3>
+				<p><a href="https://speakerdeck.com/alex/why-i-hate-the-django-orm">Alex Gaynor has complaints</a></p>
+				<p class="fragment">And he wrote the thing</p>
+				<div class="fragment"><p>Does not use same syntax for simple things like field names</p>
+				<ul><li><pre>filter(field_name=value)</pre></li>
+				<li><pre>Q(field_name=value)</pre></li>
+				<li><pre>Aggregate("field_name")</pre></li>
+				<li><pre>F("field_name")</pre></li>
+				</ul>
+				</div>
+				<p class="fragment">No support for composite keys</p>
+				<p class="fragment">Cannot name automatically created objects like indexes</p>
+				<p class="fragment">Primary keys are always serial integer</p>
+				<p class="fragment">Should be used to replace common queries, <b>not</b> to replace SQL</p>
+				</section>
+				<section>
+					<pre><code lang="SQL">SELECT e.event_type
+  , sum(e.end_time - e.start_time)
+FROM event as e
+GROUP BY e.event_type
+;
+</code></pre>
+<br />
+<pre><code lang="python">
+Event.objects.values(
+	"event_type"
+).annotate(
+	Sum(F("start_time") - F("end_time"))
+)
+
+</code></pre>
+					<div class="fragment"><p class="fragment grow highlight-red"><b>THIS DOES NOT WORK</b></p></div>
+					<p class="fragment">Aggregates take string (not expressions)</p>
+				</section>
+				</section>
+
+				<section>
+					<h3>SQLAlchemy</h3>
+					<p class="fragment">Data Mapper pattern</p>
+					<p class="fragment">Written by Michael Bayer @Zzzeek, started in 2006</p>
+					<p class="fragment">Framework agnostic</p>
+					<p class="fragment">Design focus on using different db&apos;s in a <em>consistent</em> way</p>
+					<div class="fragment">
+					<p>.&nbsp;.&nbsp;.&nbsp;While still exposing the unique functionality of different platforms</p>
+					<p>PostgreSQL != MS SQL Server != MySQL != Oracle</p>
+					</div>
+					<p class="fragment">Bayer calls this &quot;Hand Coded&quot; application design</p>
+				</section>
+
+				<section>
+				<section><h3>More About SQLAlchemy</h3>
+					<p class="fragment">Simple queries are still simple!</p>
+					<p class="fragment">Mildly complex and more difficult queries are feasible, and <em>relatively</em> simple!</p>
+					<p class="fragment">Really tricky stuff is still possible</p>
+					<p class="fragment">Heavier learning curve, because it assumes you understand the database</p>
+				</section>
+<section><h3>That aggregate query in SQLAlchemy</h3>
+<pre><code lang="python">
+session.query(
+	TimelineEvent.event_type,
+	func.sum(TimelineEvent.end_time - TimelineEvent.start_time)
+).group_by(
+	TimelineEvent.event_type
+).all()
+
+</code></pre>
+	<div class="fragment"><p class="fragment grow highlight-green">This <b>WORKS!</b></p></div>
+</section>
+				</section>
+
+				<section><section>
+					<h3>Data Modeling with SQLAlchemy</h3>
+					<p>The engine and metadata</p>
+					<pre><code lange="python">
+from sqlalchemy import create_engine, MetaData
+
+engine = create_engine("postgresql://postgres@192.168.99.100/postgres")
+metadata = MetaData()
+</code></pre>
+				</section>
+				<section>
+<pre><code>from sqlalchemy import Table, Column, Integer, String
+
+users = Table('user', metadata
+	, Column('user_id', Integer, primary_key=True)
+	, Column('user_name', String(50), unique=True, nullable=False)
+)
+
+metadata.create_all(engine)
+</code></pre>
+</section>
+				</section>
+
+				<section>
+				<section><h3>The Declarative Model</h3>
+				<pre><code lang="python">from sqlalchemy import (
+	declarative_base
+	, Column, String, Integer
+	, ForeignKey, UniqueConstraint
+	)
+</code></pre>
+<br />
+<pre><code lang="python">SQLBase = declarative_base()
+	
+class hacker(SQLBase):
+	__tablename__ = 'hacker'
+	id = Column('hacker_id', Integer, primary_key=True)
+	handle = Column(String(50), nullable=False, unique=True)
+
+class coding_language(SQLBase):
+	__tablename__ = 'coding_language'
+	id = Column('language_id', Integer, primary_key=True)
+	language = Column(String(50), nullable=False, unique=True)
+
+class hacker_language(SQLBase):
+	id = Column('hacker_language_id', Integer, primary_key=True)
+	hacker = Column('hacker_id', Integer, ForeignKey('hacker.hacker_id'), nullable=False)
+	language = Column('language_id', Integer, ForeignKey('coding_language.language_id'), nullable=False)
+	UniqueConstraint('hacker_id', 'language_id', 'uq_hacker_language')
+
+SQLBase.metadata.create_all(engine)
+</code></pre>
+</section>
+<section>
+<pre><code lang="python">from sqlalchemy import sessionmaker
+S = sessionmaker(bind=engine)
+session = S()
+
+hl = hacker_language
+hl.hacker = 'Neo'
+hl.language = 'Python'
+
+try:
+	session.add(hl)
+except:
+	session.rollback()
+</code></pre>
+</section>
+				</section>
+
+				<section><h3>Reflection</h3>
+				<p>SQLAlchemy can build models from the database</p>
+				<pre><code lang="python">meta = MetaData()
+meta.reflect(bind=engine)
+hackerz = meta.tables['hacker']
+</code></pre>
+</section>
+
+				<section>
+					<h3>Other concerns</h3>
+					<ul><li class="fragment">Roles and object permissions</li>
+					<li class="fragment">Many to one and many to many relationships</li>
+					<li class="fragment">Importing bulk data (csv, excel) - Simple!</li>
+					<li class="fragment">Database migrations - Feasible!</li>
+					<li class="fragment">Ad hoc queries</li>
+					</ul>
+				</section>
+
+				<section>
+					<h3>Thank you Python MKE</h3>
+					<div>
+						<ul>
+						<li>Follow me: <a href="https://twitter.com/PhilVacca">@PhilVacca</a></li>
+						<li><a href="http://sixfortwo.com">http://sixfortwo.com</a></li>
+						<li><a href="http://linkedin.com/in/philvacca">http://linkedin.com/in/philvacca</a></li>
+					    <li><a href="https://github.com/pvacca">https://github.com/pvacca</a></li>
+					</ul></div>
+					<br>
+					<p>This presentation was built in <a href="https://github.com/hakimel/reveal.js">reveal.js</a></p>
+					<div><a href="http://www.usanetwork.com/mrrobot/blog/mr-robot-blog/listen-to-the-mr-robot-approved-sxsw-playlist"><img src="img/fsociety.jpg" align="right"></a></div>
+
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
