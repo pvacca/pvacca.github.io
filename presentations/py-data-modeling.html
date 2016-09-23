@@ -6,38 +6,39 @@
 
 		<title>Data Modeling in Python</title>
 
-		<meta name="description" content="Introduction to data modeling in Python">
+		<meta name="description" content="An introduction to data modeling in Python. Examples run in Python 2.7 or 3; psycopg2, Django ORM, SQLAlchemy.">
 		<meta name="author" content="Phil Vacca">
 
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/night.css">
+		<link rel="stylesheet" href="../reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="../reveal.js/css/theme/night.css">
 
 		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+		<link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
 
 		<!-- Printing and PDF exports -->
 		<script>
 			var link = document.createElement( 'link' );
 			link.rel = 'stylesheet';
 			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal.js/css/print/pdf.css' : '../reveal.js/css/print/paper.css';
 			document.getElementsByTagName( 'head' )[0].appendChild( link );
 		</script>
 
 		<!-- override any theme styles that try to set a border around images -->
 		<style>.reveal section img { border: 0; background: None; }</style>
 		<style>.reveal section ul { list-style-type: None; }</style>
+		<style>.reveal section a:hover { color: #3300aa; }</style>
 
 	</head>
 	<body>
 		<div class="reveal">
 			<div class="slides">
 				<section><h2>Data Modeling in Python</h2><p><a href="https://twitter.com/PhilVacca">@PhilVacca</a></p>
-				<div align="right"><img src="img/python-logo.png" /></div>
+				<div align="right"><img src="../img/python-logo.png" /></div>
 				</section>
 
-				<section data-background="img/PrisonerFiles.png" data-background-transition="zoom" data-background-size="800px"><h3>Data in Applications</h3>
+				<section data-background="../img/PrisonerFiles.png" data-background-transition="zoom" data-background-size="800px"><h3>Data in Applications</h3>
 					<ul class="fragment"><li>Flat Files</li><li>Key / Value</li><li>Document Store</li>
 					<li>Distributed (Map/Reduce)</li><li>Relational Database</li></ul>
 				</section>
@@ -48,11 +49,11 @@
 				<p class="fragment">Will not talk about web app design</p>
 				<p class="fragment">Examples will use PostgreSQL</p>
 				<p class="fragment">.&nbsp;.&nbsp;.&nbsp;And you should, too&nbsp;&nbsp;<code>;)</code></p>
-				<div align="right" class="fragment fade-up current-fragment"><img src="img/pg_logo_128.png" /></div>
+				<div align="right" class="fragment fade-up current-fragment"><img src="../img/pg_logo_128.png" /></div>
 				</section>
 
 				<section><h3>Traditional Data Manipulation with SQL</h3>
-				<div class="fragment"><img src="img/sv-richard-middle-out.jpg" />
+				<div class="fragment"><img src="../img/sv-richard-middle-out.jpg" />
 				<p>"I was watching my friends have this argument about manipulating… data, and how many… datas could one guy manipulate at once"</p></div>
 				</section>
 
@@ -69,7 +70,6 @@ port="5432"
 user="postgres"
 dbname="postgres"
 
-# should try / catch
 conn=pg.connect("host={} port={} user={} dbname={}".format(host, port, user, dbname))
 
 </code></pre></section>
@@ -110,7 +110,7 @@ conn.close()
 				<div class="fragment"><img src="http://imgs.xkcd.com/comics/standards.png" /></div>
 				</section-->
 
-				<section><h3>Enter the ORM</h3>
+				<section data-transition="fade-out"><h3>Enter the ORM</h3>
 				<h4>Object Relational Mapper</h4>
 				<p class="fragment">Conceptually borrowed from OOP</p>
 				<p class="fragment">But you can use with other styles</p>
@@ -118,15 +118,29 @@ conn.close()
 				<p class="fragment">No change in code thinking (SQL is Set Based, Declarative)</p>
 				</section>
 
+				<section data-transition="fade-out">
 				<section><h3>So everybody loves ORMs, right?</h3>
-				<div class="fragment"><img src="img/what-ORMs-taught-me.png" width=600px /></div>
-				<div class="fragment"><p><em>Object/Relational Mapping is the Vietnam of Computer Science. It represents a quagmire which starts well, gets more complicated as time passes, and before long entraps its users in a commitment that has no clear demarcation point, no clear win conditions, and no clear exit strategy.</em></p><div align="right"><a href="http://blogs.tedneward.com/post/the-vietnam-of-computer-science/"><p>--Ted Neward<br />26 June, 2006</p></a></div></div>
+				<div class="fragment"><img src="../img/what-ORMs-taught-me.png" width=600px /></div>
+				<div class="fragment"><img src="../img/ORM-is-antipattern.png" width=600px /></div>
+				</section><section data-transition="fade-in">
+				<div><p><em>Object/Relational Mapping is the Vietnam of Computer Science. It represents a quagmire which starts well, gets more complicated as time passes, and before long entraps its users in a commitment that has no clear demarcation point, no clear win conditions, and no clear exit strategy.</em></p><div align="right"><a href="http://blogs.tedneward.com/post/the-vietnam-of-computer-science/"><p>--Ted Neward<br />26 June, 2006</p></a></div></div>
+				</section>
 				</section>
 
 				<section><h3>Common ORM Disadvantages</h3>
 					<p class="fragment">Still have to drop into SQL to handle complicated things</p>
 					<p class="fragment">Whitewashes all DB platforms to make them the &quot;same&quot;</p>
-					<p class="fragment">Impedence mismatch</p>
+					<p class="fragment"><em>Impedence mismatch</em></p>
+				</section>
+
+				<section><h2>Maybe the people who say those things just haven&apos;t found the right one.&nbsp;.&nbsp;.</h2></section>
+
+				<section data-transition="zoom"><h3>Popular Python ORMs</h3>
+				<ul class="fragment"><li>SQLObject</li>
+					<li class="fragment grow visible">SQLAlchemy</li>
+					<li class="fragment grow visible">Django ORM</li>
+					<li>PeeWee</li><li>PonyORM</li>
+				</ul>
 				</section>
 
 				<section><h3>ORM Types</h3>
@@ -135,32 +149,24 @@ conn.close()
 				</section>
 
 				<section><h3>Active Record</h3>
+					<h4>The Django ORM uses an Active Record pattern</h4>
 					<p>The ORM creates a 1:1 mapping of the relational data</p>
 					<p>Each object represents one distinct row of data</p>
-					<p>Relatively light weight</p>
-					<img src="img/activerecord.png">
+					<img src="../img/activerecord.png">
 				</section>
 
 				<section><h3>Data Mapper</h3>
+					<h4>SQLAlchemy is a Data Mapper</h4>
 					<p>The ORM creates a generic layer that maps procedures to data</p>
 					<p>Each object represents a unit of work on a modelled data object (which may or may not correspond to a row of data)</p>
-					<p>Resource overhead is higher than Active Record pattern</p>
-					<img src="img/datamapper.png">
-				</section>
-
-				<section><h3>Popular Python ORMs</h3>
-				<ul class="fragment"><li>SQLObject</li>
-					<li class="fragment grow visible">SQLAlchemy</li>
-					<li class="fragment grow visible">Django ORM</li>
-					<li>PeeWee</li><li>PonyORM</li>
-				</ul>
+					<img src="../img/datamapper.png">
 				</section>
 
 				<section><h3>Django ORM</h3>
-					<p class="fragment">Active Record pattern</p>
-					<p class="fragment">Written as part of Django framework (ca. 2005)</p>
-					<p class="fragment">Known for ease of use, short learning curve</p>
-					<p class="fragment">Simplifies writing easy queries (INSERT / UPDATE / DELETE)</p>
+					<div class="fragment"><p>Implements Active Record pattern</p>
+					<p>Written as part of Django framework (ca. 2005)</p></div>
+					<div class="fragment"><p>Known for ease of use, short learning curve</p>
+					<p>Simplifies writing easy queries (INSERT / UPDATE / DELETE)</p></div>
 					<p class="fragment">Takes a similar amount of code relative to SQL for writing medium difficulty queries (GROUP BY, window functions)</p>
 					<p class="fragment">But at least you get to write Python</p>
 					<p class="fragment">Cannot feasibly handle complicated queries (GROUPING SETS, DISTINCT ON, aggregated sub-queries, CTE&apos;s, etc)</p>
@@ -169,16 +175,18 @@ conn.close()
 				<p><a href="https://speakerdeck.com/alex/why-i-hate-the-django-orm">Alex Gaynor has complaints</a></p>
 				<p class="fragment">And he wrote the thing</p>
 				<div class="fragment"><p>Does not use same syntax for simple things like field names</p>
-				<ul><li><pre>filter(field_name=value)</pre></li>
-				<li><pre>Q(field_name=value)</pre></li>
-				<li><pre>Aggregate("field_name")</pre></li>
-				<li><pre>F("field_name")</pre></li>
+				<ul>
+				<li><pre>filter(field_name=value)   Aggregate("field_name")</pre></li>
+				<li><pre>Q(field_name=value)        F("field_name")</pre></li>
 				</ul>
 				</div>
-				<p class="fragment">No support for composite keys</p>
-				<p class="fragment">Cannot name automatically created objects like indexes</p>
-				<p class="fragment">Primary keys are always serial integer</p>
 				<p class="fragment">Should be used to replace common queries, <b>not</b> to replace SQL</p>
+				<div class="fragment"><hr>
+				<p>And while we&apos;re at it.&nbsp;.&nbsp;.</p>
+				<p>No support for composite keys</p>
+				<p>Cannot name automatically created objects like indexes</p>
+				<p>Primary keys are always serial integer</p>
+				</div>
 				</section>
 				<section>
 					<pre><code lang="SQL">SELECT e.event_type
@@ -196,7 +204,7 @@ Event.objects.values(
 )
 
 </code></pre>
-					<div class="fragment"><p class="fragment grow highlight-red"><b>THIS DOES NOT WORK</b></p></div>
+					<p class="fragment grow highlight-red"><b>THIS DOES NOT WORK</b></p>
 					<p class="fragment">Aggregates take string (not expressions)</p>
 				</section>
 				</section>
@@ -231,7 +239,7 @@ session.query(
 ).all()
 
 </code></pre>
-	<div class="fragment"><p class="fragment grow highlight-green">This <b>WORKS!</b></p></div>
+	<p class="fragment grow highlight-green">This <b>WORKS!</b></p>
 </section>
 				</section>
 
@@ -325,23 +333,24 @@ hackerz = meta.tables['hacker']
 
 				<section>
 					<h3>Thank you Python MKE</h3>
+					<br>
 					<div>
 						<ul>
-						<li>Follow me: <a href="https://twitter.com/PhilVacca">@PhilVacca</a></li>
+						<li><a href="https://twitter.com/PhilVacca"><i class="fa fa-twitter-lg"></i> @PhilVacca</a></li>
 						<li><a href="http://sixfortwo.com">http://sixfortwo.com</a></li>
 						<li><a href="http://linkedin.com/in/philvacca">http://linkedin.com/in/philvacca</a></li>
 					    <li><a href="https://github.com/pvacca">https://github.com/pvacca</a></li>
 					</ul></div>
 					<br>
 					<p>This presentation was built in <a href="https://github.com/hakimel/reveal.js">reveal.js</a></p>
-					<div><a href="http://www.usanetwork.com/mrrobot/blog/mr-robot-blog/listen-to-the-mr-robot-approved-sxsw-playlist"><img src="img/fsociety.jpg" align="right"></a></div>
+					<div><a href="http://www.usanetwork.com/mrrobot/blog/mr-robot-blog/listen-to-the-mr-robot-approved-sxsw-playlist"><img src="../img/fsociety.jpg" align="right"></a></div>
 
 				</section>
 			</div>
 		</div>
 
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
+		<script src="../reveal.js/lib/js/head.min.js"></script>
+		<script src="../reveal.js/js/reveal.js"></script>
 
 		<script>
 			// More info https://github.com/hakimel/reveal.js#configuration
@@ -350,10 +359,10 @@ hackerz = meta.tables['hacker']
 
 				// More info https://github.com/hakimel/reveal.js#dependencies
 				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+					{ src: '../reveal.js/plugin/markdown/marked.js' },
+					{ src: '../reveal.js/plugin/markdown/markdown.js' },
+					{ src: '../reveal.js/plugin/notes/notes.js', async: true },
+					{ src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
 				]
 			});
 		</script>
