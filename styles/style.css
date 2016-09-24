@@ -19,14 +19,14 @@
 	padding-left: 2vw;
 }
 #presentations table {
-	width: 85%;
+	width: 90%;
 	position: relative;
-	padding-left: 4vw;
+	padding-left: 3vw;
 	font-family: 'Raleway', sans-serif;
 	font-size: 70%;
 }
 #presentations tr {
-	padding: .5em;
+	padding: 1em;
 }
 #presentations th, td {
     border-bottom: 1px solid #ddd;
