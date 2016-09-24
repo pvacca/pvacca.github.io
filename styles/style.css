@@ -18,16 +18,16 @@
 #content p {
 	padding-left: 2vw;
 }
-#content table {
+#presentations table {
 	/*width: 90%; */
 	padding-left: 4vw;
 	font-family: 'Raleway', sans-serif;
 	font-size: 70%;
 }
-#content tr {
+#presentations tr {
 	padding: .5em;
 }
-#content th, td {
+#presentations th, td {
     border-bottom: 1px solid #ddd;
 }
 #presentations {
@@ -77,9 +77,6 @@
 	background-color: linen;
 	font-size: 1.5vw;
 	color: DarkGray;
-}
-.white {
-	font-color: #fff;
 }
 
 h3 {
