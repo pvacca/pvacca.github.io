@@ -7,7 +7,7 @@
 	right: 0;
 	top: 0;
 	width: 87%;
-	height: 93%;
+	height: 97%;
 	/*padding-top: 1vh;*/
 	padding-right: 1vw;
 	/*min-height: 600px;*/
@@ -17,6 +17,17 @@
 }
 #content p {
 	padding-left: 2vw;
+}
+#content table {
+	width: 80%;
+	font-family: 'Raleway', sans-serif;
+	/*font-size: 80%; */
+}
+#content tr {
+	padding: .5em;
+}
+#content th, td {
+    border-bottom: 1px solid #ddd;
 }
 #presentations {
 	padding-top: 1vh;
@@ -87,24 +98,13 @@ a:visited {
 a:hover {
 	color: crimson;
 }
-table {
-	font-family: 'Josefin Slab', serif;
-	font-size: 80%;
-}
-tr {
-	padding-right: .5vw;
-	padding-left: .5vw;
-}
-th, td {
-    border-bottom: 1px solid #ddd;
-}
 
 /* Glyph, by Harry Roberts */
 hr.style-glyph {
     padding: 0 1em 0 1em;
     border: none;
     border-top: medium double #333;
-    color: #333;
+    color: #ddd;
     text-align: center;
 }
 hr.style-glyph:after {
