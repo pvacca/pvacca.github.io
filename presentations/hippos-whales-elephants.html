@@ -1,0 +1,293 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>The Elephant Meets The Whale</title>
+
+		<meta name="description" content="Bringing Postgres to Production on Docker and Crunchy Container Suite">
+		<meta name="author" content="Phil Vacca">
+
+		<link rel="stylesheet" href="../reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="../reveal.js/css/theme/league.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+<!-- 		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script> -->
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section><h2>The Elephant Meets The Whale</h2>
+				<h3>Bringing PostgreSQL to Production on Docker</h3>
+				<br>
+				<p><img src="../img/pg_logo_128.png" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<img src="../img/docker_logo_tr.png" /></p>
+				<br>
+				<p><a href="http://twitter.com/PhilVacca">@PhilVacca</a></p>
+				</section>
+
+				<section><h3>About this talk</h3>
+				<p class="fragment">Introduction to Docker basics</p>
+				<p class="fragment">What makes a container Production-ready</p>
+				<p class="fragment">This talk is not about container Orchestration, or managing a fully containerized environment</p>
+				</section>
+
+				<section><h3>Containers and the Docker Ecosystem</h3></section>
+
+				<section><p>What is a Docker Container?</p>
+				  <p class="fragment">Nothing new!</p>
+				  <p class="fragment">chroot -> BSD Jails -> LXC -> libcontainer</p>
+				  <p class="fragment">Docker is a specific implementation of a container</p>
+				  <p class="fragment">.&nbsp;.&nbsp;.&nbsp;but there are others</p>
+				</section>
+				<section data-transition="fade-out">
+				  <p>So, it's just a light-weight VM?</p>
+				  <p class="fragment">NO! Containers wrap a process, they are <em>not</em> Virtual Machines.</p>
+				  <p class="fragment">No hypervisor, no init, no cron, no process monitor, no utilities to manage multiple containers.&nbsp;.&nbsp;.</p>
+				  <p class="fragment">A Docker container has a single entrypoint, which launches a single process.</p> 
+				  </section>
+				<section data-transition="fade-in fade-out">
+				  <img src="img/Dog-runs-away-with-pen.gif" />
+				  <p>^^ Basically Docker</p>
+				</section>
+
+				<section><h3>PostgreSQL on Docker</h3><h4>Getting Started</h4></section>
+
+				<section>
+					<section><h3>The official Docker image</h3>
+					<a href="https://hub.docker.com/_/postgres/">https://hub.docker.com/_/postgres/</a>
+					<br><br>
+					<ul>
+					<li class="fragment">Each DockerFile command is a layer</li>
+					<li class="fragment">Each command runs at container build</li>
+					<li class="fragment">Smaller base images yield smaller containers</li>
+					<li class="fragment">But small containers aren&apos;t always that big a deal</li>
+					</ul>
+					</section>
+					<section>
+						<h4>Running the PostgreSQL Docker image</h4>
+						<pre><code>docker run -d --name pg -p 5432:5432 postgres:9.5</code></pre>
+						<pre><code>psql -h $(docker-machine ip) -U postgres postgres</code></pre>
+
+					</section>
+				</section>
+
+				<section>
+				<section>
+				<h3>What about ssh?</h3>
+				<p class="fragment">Short answer: don&apos;t use it</p>
+				<p class="fragment">Containers host one process</p>
+				<p class="fragment">Changes should be built into the container, not made ad hoc</p>
+				</section>
+				<section><p>But if you really must get into the container.&nbsp;.&nbsp;.</p>
+				<pre><code>docker exec -it pg /bin/bash</code></pre>
+				</section>
+				</section>
+
+				<section>
+					<section><h3>Extending the official image</h3>
+					<p>Adding plpythonu</p>
+					</section>
+					<section>
+					<pre><code>FROM postgres:9.5
+
+RUN apt-get update \
+ && apt-get install -y postgresql-plpython-9.5 \
+ && rm -rf /var/lib/apt/lists/* 
+</code></pre>
+				</section>
+					<section>
+						<h3>Building the new image</h3>
+						<pre><code>docker build -t pypg:9.5 .</code></pre>
+						<pre><code>docker run -d --name pg -p 5432:5432 pypg:9.5</code></pre>
+						<pre><code>psql -h $(docker-machine ip) -U postgres postgres</code></pre>
+					</section>
+				</section>
+
+				<section><h3>That is nice and all, but where is my data?</h3></section>
+
+				<section>
+				<section><h4>Volume management</h4>
+				<p>Declaring volumes in the image with <code>VOLUME</code></p>
+				<div class="fragment"><img src="img/docker_volume.png" /></div>
+				</section>
+				<section>
+				<h4>The docker volume command</h4>
+				<pre><code>docker volume ls</code></pre>
+				<pre><code>docker volume inspect</code></pre>
+				</section>
+				</section>
+
+				<section><h3>Creating stand-alone volumes</h3>
+				<p>Docker engine features volume plugins</p>
+				<ul><li>Flocker</li><li>AzureFS</li><li>GlusterFS</li><li>Many more.&nbsp;.&nbsp;.&nbsp;</ul>
+				<div class="fragment"><pre><code>docker volume create -d local --label="pump_up"</code></pre></div>
+				</section>
+
+				<section>
+					<h3>Logging</h3>
+					<p class="fragment">Where are the files?</p>
+					<p class="fragment">Log to stdout, collect externally</p>
+					<p class="fragment">And / or put logs on a <em>volume</em></p>
+					<p class="fragment">Build a pgBadger only container to handle the physical files</p>
+				</section>
+
+				<section>
+					<p>Docker engine features logging plugins</p>
+					<ul class="fragment"><li>json</li><li>syslog</li><li>splunk</li><li>Logstash</li><li>fluentd</li><li>Many more.&nbsp;.&nbsp;.&nbsp;</li></ul>
+				</section>
+
+				<section><h3>Are we Production-ready yet?</h3>
+				<div class="fragment"><img src="img/happy_fam.jpg" /></div>
+				</section>
+
+				<section><h4>Limitations of the official image</h4>
+					<p class="fragment">No data-checksums at initdb <strike>(and no control of initdb)</strike></p>
+					<p class="fragment">Can pass ENV variable <code>$POSTGRES_INITDB_ARGS</code></p>
+					<p class="fragment">The pgdata directory is all on one volume</p>
+					<p class="fragment">Tablespaces? WAL? Postgres Log? WAL shipping?</p>
+					<p class="fragment">Authentication methods?</p>
+				</section>
+
+				<section>
+				<section><h4>Ways to handle postgresql.conf</h4>
+					<p class="fragment">Pass parameters to postmaster on startup</p>
+					<p class="fragment">Use a volume</p>
+					<p class="fragment">You <em>can</em> volume mount a single file (overwrites that file in image)</p>
+					<p class="fragment">This works for your SSL certs, too</p>
+				</section>
+				<section>
+					<h4>Implementation steps</h4>
+					<p class="fragment">Generate a simple postgresql.conf with include directives</p>
+					<p class="fragment">Split major aspects of the conf into separate files (e.g. logging, WAL writes, locale, SSL)</p>
+					<p class="fragment">Touch those file paths in the Dockerfile to create empty stubs</p>
+					<p class="fragment">Mount each file on container startup</p>
+				</section>
+				</section>
+
+				<section><h3>Well,&nbsp;<em>now</em>&nbsp;&nbsp;we&apos;re Production-ready, right?</h3>
+				<p class="fragment">Not hardly</p>
+				</section>
+
+				<section><h3>More security</h3>
+					<p class="fragment">Running as root, using gosu in script</p>
+					<p class="fragment">This means anyone can start the container and <code>exec</code> into root</p>
+				</section>
+
+				<section><h3>Constraining the container, and OS level optimizations</h3>
+					<p class="fragment">Set swappiness 0 with <code>--memory-swappiness</code></p>
+					<p class="fragment">Set run-time constraints</p>
+					<ul class="fragment"><li>memory</li><li>memory swap</li><li>CPU shares</li><li>Block IO weight</li></ul>
+				</section>
+
+				<section>
+					<h3>High availability &amp; Connection Pooling</h3>
+					<p class="fragment">Initialize streaming replica by adding pg_basebackup to entrypoint</p>
+					<p class="fragment">Put pgpool-ii in a container</p>
+					<p class="fragment">Build pgbouncer into your Postgres container image</p>
+					<p class="fragment">Or, volume mount the socket file, and leave pgbouncer in a seperate container that mounts the same volume</p>
+					<p class="fragment">Add service discovery (etcd, Consul, Zookeeper)</p>
+					<p class="fragment">Several organizations exploring better failover (Joyent Manatee, Red Hat Project Atomic)</p>
+				</section>
+
+				<section>
+					<h3>Backups</h3>
+					<p class="fragment">Snapshot the volumes</p>
+					<p class="fragment">Build a pg_dump / pg_basebackup container</p>
+					<p class="fragment">Put pgbackrest in a container (and give it more cores)</p>
+				</section>
+
+				<section>
+				<h3>Health &amp; Monitoring</h3>
+					<p class="fragment">Monitoring moves up a level</p>
+					<ul class="fragment"><li><code>docker stat</code></li>
+						<li>CAdvisor from Google</li>
+						<li>Hosted solutions: Scout, DataDog</li></ul>
+					<p class="fragment">Can you run statsd, or another agent?</p>
+					<p class="fragment">One process per container is arbitrary</p>
+					<p class="fragment">But now you need something to watch the processes (and remember to EXPOSE the port in your Dockerfile)</p>
+				</section>
+
+				<section data-transition="fade-in fade-out">
+				<h3>Hooray! We&apos;re Production-ready</h3><h4 class="fragment">Now what have I done?</h4>
+
+				<div class="fragment"><img src="img/if_you_should.jpg" /></div>
+				</section>
+
+				<section data-transition="fade-out">
+					<h3>Challenges with Docker</h3>
+					<p class="fragment">Keeping track of lots of containers</p>
+					<div class="fragment"><img src="img/loading.jpg" /><p>What you imagine</p></div>
+				</section>
+				<section data-transition="fade-in fade-out">
+					<img src="img/trailers.jpg" /><p>What you actually have</p>
+				</section>
+				<section data-transition="fade-in fade-out">
+				<p>Dealing with failures</p>
+				<div class="fragment"><img src="img/tipping.jpg"></div>
+				</section>
+
+				<section data-transition="fade-in fade-out">
+				<h3>Poorly Understood Security</h3>
+				<div class="fragment"><img src="img/elliot_lockpick.jpg" /><p>Every system is hackable</p></div>
+				</section>
+
+				<section>
+					<h3>Problems with Docker</h3>
+					<p class="fragment">Rapidly changing</p>
+					<p class="fragment">Changes to machine version not backward compatible (must rebuild whole environment)</p>
+					<p class="fragment">Community fragmentation?</p>
+					<p class="fragment">Remember, Docker is an implementation, not a standard</p>
+				</section>
+
+				<section><h3>Chasing Exciting Things</h3>
+				<div class="fragment"><img src="img/kids-soccer_cr.jpg" /></div>
+				</section>
+
+				<section>
+					<h3>Thank you, #pgOpen2016!</h3>
+					<h3>Questions?</h3>
+					<br>
+					<div>
+						<ul>
+						<li>Follow me: <a href="https://twitter.com/PhilVacca">@PhilVacca</a></li>
+						<li><a href="http://sixfortwo.com">http://sixfortwo.com</a></li>
+						<li><a href="http://linkedin.com/in/philvacca">http://linkedin.com/in/philvacca</a></li>
+					    <li><a href="https://github.com/pvacca">https://github.com/pvacca</a></li>
+					</ul></div>
+					<br>
+						<p>This presentation was built in <a href="https://github.com/hakimel/reveal.js">reveal.js</a></p>
+					<div><a href="http://www.usanetwork.com/mrrobot/blog/mr-robot-blog/listen-to-the-mr-robot-approved-sxsw-playlist"><img src="img/fsociety.jpg" align="right"></a></div>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
