@@ -1,0 +1,308 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Cloudy With A Chance of Elephants</title>
+
+		<meta name="description" content="A look at Postgres in the Cloud.">
+		<meta name="author" content="Phil Vacca">
+
+		<link rel="stylesheet" href="../reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="../reveal.js/css/theme/sky.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+<!--  		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../css/print/pdf.css' : '../css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+ -->		
+ 		<style>
+		.reveal section img {
+			border: 0px;
+			background: transparent;
+		}
+/*		.middle_pic img {
+			padding-top: 3em;
+		}
+*/		</style>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background="../img/cloudy.png">
+
+				</section>
+
+				<section> <!--data-background="../img/cloudy-cover.jpg"-->
+
+				<h3>A Look at PostgreSQL in The Cloud</h3>
+				<br>
+				<h4>(with apologies to Judi &amp; Ron Barrett)
+				<br><br>
+				<p><a href="http://twitter.com/PhilVacca">@PhilVacca</a></p><br>
+				<div align="right"><img src="../img/mitel.png" /></div>
+				</section>
+
+				<section><h3>About this talk</h3>
+				<p class="fragment">Evolution of Cloud offerings</p>
+				<p class="fragment">What do you gain, what do you lose?</p>
+				<p class="fragment">Should you use these services?</p>
+				</section>
+
+				<section><h3>The Cloud</h3></section>
+
+				<section data-transition="fade-out"><p>Is it a joke?</p>
+				  <img class="fragment" src="../img/no-cloud.png" />
+				  <p class="fragment">.&nbsp;.&nbsp;.&nbsp;Cloud&nbsp;=>&nbsp;&nbsp;(&nbsp;&nbsp;)&nbsp;)</p>
+				</section>
+
+				<section data-transition="fade-out"><h3>Why would someone do this?</h3>
+				  <p class="fragment">Affordable</p>
+				  <p class="fragment"><img src="../img/bankrupt_128.png" /><br>Developers ^^</p>
+				</section>
+
+				<section data-transition="fade-out"><h3>Why would someone do this?</h3>
+				  <p class="fragment"><em>Probably</em> administered correctly</p>
+				  <br>
+				  <span class="fragment"><img src="../img/no-idea.jpg" ><br><p>Developers ^^</p></span>
+				</section>
+
+				<section data-transition="fade-in fade-out">
+				  <h3>Why would someone do this?</h3>
+				  <span class="fragment">
+				  	<p>Backups</p>
+				  	<p>Replication</p>
+				  	<p>Fail-over</p>
+				  	<p>Managed Upgrades</p>
+				  </span><span class="fragment">
+				  	<p>Security &amp; encryption</p>
+				  	<p>Compliance - HIPAA, SOX, etc.</p>
+				  </span>
+
+				</section>
+
+				<section data-transition="fade-in fade-out">
+				  <h3>Enter Heroku</h3>
+ 				  <img src="../img/heroku-320.png" />
+ 				  <br />
+ 				  <p>Est. 2007</p>
+				</section>
+
+				<section data-transition="fade-out">
+				  <p>Innovations for Ruby developers</p>
+				  <p class="fragment">Build packs</p>
+				  <p class="fragment">git push deploys</p>
+				  <p class="fragment">Anonymous database backend</p>
+				</section>
+
+				<section data-transition="fade-in fade-out">
+				  <h3>Enter Salesforce</h3>
+ 				  <img src="../img/salesforce.png" />
+ 				  <br />
+ 				  <p>Est. 2010</p>
+ 				  <p class="fragment">PostgreSQL Backend<br><img src="../img/pg_logo_128.png" /><br>Est. 2011</p>
+				</section>
+
+				<section><h3>Heroku PostgreSQL Features</h3>
+				  <p class="fragment">Versions 9.2 (depr), 9.3 - 9.6</p>
+				  <p class="fragment">Simplified pricing, based on Plan tier, with add-ons</p>
+				  <span class="fragment"><p>Performance monitoring dashboard
+				  	<br><code>pg_stat_statements</code>
+				    <br><code>pgstattuple</code></p>
+				  </span>
+				  <p class="fragment">Connection by SSL</p>
+				  <p class="fragment">Heroku Clips</p>
+				  <p class="fragment"><em>Some</em> tiers include on-disk encryption</p>
+				  <p class="fragment">Integration with Libratto, New Relic</p>
+				</section>
+				<section><h3>Extensions</h3>
+				  <p class="fragment">PostGIS</p>
+				  <p class="fragment">pg_crypto</p>
+				  <p class="fragment">hstore, CIText, uuid-ossp</p>
+				  <p class="fragment">cube, earthdistance</p>
+				  <p class="fragment">postgres_fdw, redis_fdw, dblink</p>
+				  <p class="fragment">fuzzystrmatch, pg_trgm</p>
+				  <p class="fragment">GiST</p>
+				  <p class="fragment">pg_partman, pg_prewarm</p>
+				  <p class="fragment">PL/pgSQL, PL/v8</p>
+				</section>
+
+				<section data-transition="fade-out"><h3>Heroku PostgreSQL Limitations</h3>
+				  <p class="fragment">App is tied to Heroku philosophy</p>
+				  <p class="fragment">Followers (not replicas)</p>
+				  <p class="fragment">No dynamic resize (copy &amp; follower only - db in maint)</p>
+				  <p class="fragment">IOPs bound to tier</p>
+				  <p class="fragment"><code>max_connections</code> tied to plan tier</p>
+				  <p class="fragment">Most conf options are fixed and hidden, except VACUUM</p>
+				  <p class="fragment">Copy is a wrapper around pg_basebackup (presumably)</p>
+				  <p class="fragment">Failover requires app restart</p>
+				  <p class="fragment">Upgrades manually initiated (copy, or wrapper around pg_upgrade)</p>
+				</section>
+
+
+				<section data-transition="zoom">
+					<h3>Enter AWS Relational Database Service</h3>
+					<p><img src="../img/aws-logo.png" />
+					<br>PostgreSQL Est. 2013</p>
+				</section>
+
+				<section data-transition="fade-in">
+				  <h3>RDS Features</h3>
+				  <p class="fragment">PostgreSQL 9.3 - 9.6</p>
+				  <p class="fragment">Tight integration with AWS, but no lock-in</p>
+				  <p class="fragment">Stats temp directory RAM disk</p>
+				  <p class="fragment">Huge pages</p>
+				  <p class="fragment">Event Triggers</p>
+				  <p class="fragment">HIPAA, SOX, others by default</p>
+				  <p class="fragment">Encrypted by default</p>
+
+				</section>
+
+				<section data-transition="fade-in">
+				  <h3>RDS Features</h3>
+				  <p class="fragment">Over 50 supported extensions</p>
+				  <p class="fragment">log_fdw, ip4r</p>
+				  <p class="fragment">pg_buffercache</p>
+				  <p class="fragment">GIN, GiST, bloom</p>
+				  <p class="fragment">PL/Perl, PL/TCL, PL/Coffee</p>
+				  <p class="fragment">PostGIS Tiger Geocoder</p>
+				</section>
+
+				<section data-transition="fade-out">
+				  <h3>RDS Features</h3>
+				  <img src="../img/doge_192.png" />
+				  	<p>Such features<br>wow!</p>
+				</section>
+
+				<section data-transition="fade-in fade-out">
+				  <h3>RDS Limitations</h3>
+				  <p class="fragment">Pricing similar to EC2 - IOPs, Memory, Reserved, On-demand</p>
+				  <p class="fragment">Network bandwidth not included in cost</p>
+				  <p class="fragment">IOPs, memory, CPU can be burst-ey</p>
+				  <p class="fragment">Upgrades through maintenance window</p>
+				  <p class="fragment">Tablespace support, but all on same volume</p>
+				  <p class="fragment">Harder to export data</p>
+				</section>
+
+				<section data-transition="convex">
+				  <h3>And The Rest</h3>
+				  <img src="../img/and-the-rest.jpg" />
+				</section>
+
+				<section><h3>Azure PostgreSQL Features</h3>
+				  <p class="fragment">Community Preview</p>
+				  <p class="fragment">Version 9.6</p>
+				  <p class="fragment">Simplified pricing, based on Compute Units (100 CU&apos;s ~ 1 Core)</p>
+				  <p class="fragment">35 Days of backups, PITR to 5 minute windows</p>
+				  <p class="fragment">Included in base price (no cost of storage)</p>
+				  <p class="fragment">All data encrypted by default</p>
+				  <p class="fragment">SSL by default</p>
+				  <p class="fragment">No downtime to scale CU</p>
+				</section>
+
+				<section><h3>Azure PostgreSQL Limitations</h3>
+				  <p class="fragment">Yeah, still Microsoft</p>
+				  <blockquote class="fragment">When we looked at offering managed PostgreSQL service for developers, we of course wanted to address those basic managed service capabilities such as automated patching, backup and restore capability, monitoring, alerting, logging, etc. However, talking to customers we learnt that there is a unique opportunity for Microsoft to do something more and better than other cloud providers, specifically in areas such as reliability, security and elasticity and making it simple and worry free for developers. We have therefore in many ways redefined the value creation with managed database service.
+				 </blockquote></section>
+
+				<section data-transition="fade-out"><h3>Azure PostgreSQL Limitations</h3>
+				  <p class="fragment">4 nines (99.99) on general release</p>
+				  <p class="fragment">Community preview pricing</p>
+				  <p class="fragment">Storage, memory is tied to CU</p>
+				  <p class="fragment">Few PG metrics in monitoring</p>
+				</section>
+
+				<section data-transition="fade-in"><h3>Google Cloud SQL for Postgres</h3>
+				  <h3>Features</h3>
+				  <p class="fragment">PostgreSQL 9.6</p>
+				  <p class="fragment">Beta</p>
+				  <p class="fragment">SSD or HDD storage</p>
+				  <p class="fragment">PL/SQL</p>
+				  <p class="fragment">btree-gin, btree-gist, chkpass, citext, cube, dict_int, dict_xsyn, earthdistance, intagg, intarray, isn, ltree, pgstattuple, pg_trgm, tablefunc, tsm_system_rows, tsm_system_time, unaccent, uuid-ossp</p>
+				</section>
+
+				<section data-transition="fade-out"><h3>GCE PostgreSQL available configuration</h3>
+				  <code>
+	autovacuum
+	autovacuum_analyze_scale_factor
+	autovacuum_analyze_threshold
+	autovacuum_naptime
+	autovacuum_vacuum_scale_factor
+	autovacuum_vacuum_threshold
+	log_autovacuum_min_duration
+				</code>
+			</section>
+
+				<section data-transition="fade-in"><h3>Google Cloud SQL for Postgres</h3>
+				  <h3>Limitations</h3>
+				  <p class="fragment">Pay for ingress and egress ($.05/GB, $.19/GB)</p>
+				  <p class="fragment">Cost of storage for backups</p>
+				  <p class="fragment">NO REPLICATION!</p>
+				  <p class="fragment">you cannot import or export more than one database at a time</p>
+				  <p class="fragment">No CSV import/export</p>
+				</section>
+
+
+<!-- 				<section>
+					<h3>High availability &amp; Connection Pooling</h3>
+					<p class="fragment">EC2 pgpool-][</p>
+					<p class="fragment">Or pgbouncer, repmgr</p>
+					<p class="fragment">Add service discovery (etcd, Consul, Zookeeper)</p>
+					<p class="fragment">Several organizations exploring better failover (Joyent Manatee, Red Hat Project Atomic)</p>
+				</section>
+ -->
+				<section data-transition="zoom">
+					<h3>So.&nbsp;.&nbsp;.&nbsp;Should I run my app on the Cloud?</h3>
+					<img src="../img/all_the_things.jpg" /><br>
+					<p>Cloud all the things!</p>					
+				</section>
+
+<!-- 				<section><h3>Chasing Exciting Things</h3>
+				<div class="fragment"><img src="../img/kids-soccer_cr.jpg" /></div>
+				</section>
+ -->
+				<section>
+					<h3>Thank you, OHIO!</h3>
+					<h3>Questions?</h3>
+					<br>
+					<div>
+						<ul>
+						<li>Follow me: <a href="https://twitter.com/PhilVacca">@PhilVacca</a></li>
+						<li><a href="http://sixfortwo.com">http://sixfortwo.com</a></li>
+						<li><a href="http://linkedin.com/in/philvacca">http://linkedin.com/in/philvacca</a></li>
+					    <li><a href="https://github.com/pvacca">https://github.com/pvacca</a></li>
+					</ul></div>
+					<br>
+						<p>This presentation was built in <a href="https://github.com/hakimel/reveal.js">reveal.js</a></p>
+<!-- 					<div><a href="http://www.usanetwork.com/mrrobot/blog/mr-robot-blog/listen-to-the-mr-robot-approved-sxsw-playlist"><img src="../img/fsociety.jpg" align="right"></a></div> -->
+				</section>
+			</div>
+		</div>
+
+		<script src="../reveal.js/lib/js/head.min.js"></script>
+		<script src="../reveal.js/js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: '../reveal.js/plugin/markdown/marked.js' },
+					{ src: '../reveal.js/plugin/markdown/markdown.js' },
+					{ src: '../reveal.js/plugin/notes/notes.js', async: true },
+					{ src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
