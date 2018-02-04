@@ -1,4 +1,4 @@
 pvacca
 ------
 http://philvacca.com/
-The public technical presentations of Phil Vacca.
+The public technical work of Phil Vacca.
