@@ -138,7 +138,7 @@
                         <p><pre>postgresql.conf</pre></p>
                         <pre><code>
 wal_level = archive
-archive_mode    = on
+archive_mode = on
 archive_command = 'cp %p /path_to/archive/%f'
                     </code></pre>
                         <p>on standby host</p><p><pre>recovery.conf</pre></p>
@@ -338,7 +338,7 @@ WITH (publish = 'insert, update, delete')
 
                 <section>
                     <h3>Creating a Subscription</h3>
-                    <p>A subscription requires a replication slot, but this is usually created for you, unless you specify <code>create_slot = flase</code></p>
+                    <p>A subscription requires a replication slot, but this is usually created for you, unless you specify <code>create_slot = false</code></p>
                     <br>
                     <pre><code>CREATE SUBSCRIPTION sub_one
 CONNECTION 'host=192.168.0.23 port=5432 user=somebody dbname=some_db'
