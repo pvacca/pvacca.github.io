@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>The Many Faces of PostgreSQL Replication</title>
+
+        <meta name="description" content="An introduction to designing highly available PostgreSQL clusters">
+        <meta name="author" content="Phil Vacca">
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+        <link rel="stylesheet" href="../reveal.js/css/reveal.css">
+        <link rel="stylesheet" href="../reveal.js/css/theme/white.css" id="theme">
+
+        <!-- Code syntax highlighting -->
+        <link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+        <!--style>img { border: 0; }</style-->
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal.js/css/print/pdf.css' : '../reveal.js/css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+        
+        <!-- override any theme styles that try to set a border around images -->
+        <style>.reveal section img { border: 0; box-shadow: 0 0 0px; }
+        </style>
+    </head>
+
+        <div class="reveal">
+
+            <!-- Any section element inside of this container is displayed as a slide -->
+            <div class="slides">
+                <section data-transition="fade-out">
+                    <h2>The Many Faces of PostgreSQL Replication</h2>
+                    <h3>Phil Vacca</h3>
+                    <img src="../img/pg_logo_128.png"><img src="../img/pg_logo_128.png"><img src="../img/pg_logo_128.png"><img src="../img/pg_logo_128.png"><img src="../img/pg_logo_128.png">
+                </section>
+
+                <section data-transition="fade-in fade-out">
+                    <h3>About this talk</h3>
+                    <ul>
+                        <li>Replication options in Postgres</li>
+                        <li>How to choose</li>
+                        <li>How to configure</li>
+                    </ul>
+                    <br><br>
+                    <div class="fragment">
+                        <h4>And your presenter</h4><p>Phil Vacca<br>Enterprise Data Architect for Mitel Networks</p>
+                    <img src="../img/mitel.png">
+                    </div>
+                </section>
+                <section data-transition="fade-in">
+                    <h3>Database Replication is a strategy for building a highly available system</h3>
+                    <img src="../img/go-game.jpg">
+                </section>
+
+                <section>
+                    <h3>Availability is NOT Recovery</h3>
+                    <p class="fragment">Outages, corruption, and human error happen in the real world</p>
+                    <p class="fragment">Untargeted (and targeted) bitlocker-style ransom attacks are increasingly common</p>
+                </section>
+
+                <section data-transition="zoom">
+                    <h3>What makes a system Highly Available?</h3>
+                    <ul>
+                        <li class="fragment">Available systems respond to demand</li>
+                        <li class="fragment">Available systems react to system failure</li>
+                        <li class="fragment">Available systems can upgrade in place</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>What makes a database Highly Available?</h3>
+                    <p>Generally we are referring to a Primary node (often called master) and at least one standby node (replica, slave)</p>
+                    <p class="fragment">A standby server can be cold, warm, or hot</p>
+                </section>
+
+                <section data-transition="concave">
+                    <h3>Principals remain the same regardless of deployment type</h3>
+                    <img src="../img/docker_logo_tr.png">&nbsp;&nbsp;<img src="../img/pg_logo_128.png">&nbsp;&nbsp;<img src="../img/kubernetes.png">
+                </section>
+
+                <section data-transition="fade-in fade-out">
+                    <h3>Types of Replication</h3>
+                    <ul>
+                        <li class="fragment grow">Streaming</li>
+                        <li>Synchronous Streaming</li>
+                        <li>Logical (built-in to PG10)</li>
+                        <li>Other Methods</li>
+                    </ul>
+                </section>
+
+                <section data-transition="fade-in">
+                    <h3>Streaming Replication</h3>
+                    <ul>
+                        <li>Added in 9.2</li>
+                        <li>Most popular</li>
+                        <li>Transmits changes as they are committed</li>
+                    </ul> 
+                </section>
+
+                <section>
+                    <h4>A Little History</h4>
+                    <img src="../img/history.jpg">
+                    <p class="fragment">A very little, promise ;-)</p>
+                </section>
+
+                <section>
+                <h3>First comes the WAL</h3>
+                <p>The Write-Ahead Log ensures that transactional changes are written to disk only after being written to a transaction log</p>
+                <p>This is what makes your database <i>recoverable</i>, and another word for this is <i>durable</i>(the D in ACID)</p>
+                </section>
+
+                <section>
+                    <section>
+                        <h3>Setting up a replica</h3>
+                        <h4>Create a standby from a backup of the Primary</h4>
+                        <p class="fragment">A logical backup (from <code>pg_dump</code>) won&apos;t be enough</p>
+                        <div class="fragment">
+                        <p>Use the <code>pg_basebackup</code> command to seed a binary replica of the running primary database</p>
+                        <p>The command can write the backup directly to another remote host. <a href="https://www.postgresql.org/docs/current/static/app-pgbasebackup.html">See the docs</a> for more options.</p>
+                    </div>
+                    </section>
+                    <section>
+                        <p>on primary</p>
+                        <p><pre>postgresql.conf</pre></p>
+                        <pre><code>
+wal_level = archive
+archive_mode = on
+archive_command = 'cp %p /path_to/archive/%f'
+                    </code></pre>
+                        <p>on standby host</p><p><pre>recovery.conf</pre></p>
+                        <pre><code>
+standby_mode = true
+restore_command = 'cp /path_to/archive/%f %p'
+archive_cleanup_command = 'pg_archivecleanup /path_to/archive %r'
+</code></pre>
+                    </section>
+                    <section>
+                        <h1>Please do not use copy command</h1>
+                        <h3>Use rsync, or a tool like pgBackRest, instead</h3>
+                    </section>
+                </section>
+
+                <section>
+                    <h3>WAL Shipping</h3>
+                    <ul>
+                        <li>Transactions are bundled into a single WAL file</li>
+                        <li>Limited by the rate of WAL write</li>
+                        <li>Need WAL archive destination that is reachable by the standby</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <section>
+                    <h3>Wouldn&apos;t it be great if.&nbsp;.&nbsp;.</h3>
+                    <ul>
+                        <li>Changes could be applied as soon as they are received</li>
+                        <li>There was no intermediary location?</li>
+                    </ul>
+                </section><section>
+                    <p>on primary</p>
+                    <pre><code>CREATE ROLE replicator WITH LOGIN REPLICATION;</code></pre>
+                    <p><pre>pg_hba.conf</pre></p>
+                    <pre><code>
+# allow the standby host to connect
+host    replication     replicator  192.168.0.42/32     md5
+                    </code></pre>
+                    <p><pre>postgresql.conf</pre></p>
+                    <pre><code>
+wal_level = hot_standby
+
+full_page_writes = on
+wal_log_hints = on
+
+max_wal_senders = 5
+wal_keep_segments = 32
+</code></pre>
+                        </section><section>
+                        <p>on standby host</p>
+                        <p><pre>postgresql.conf</pre></p>
+                        <pre><code>
+hot_standby = on</code></pre>
+                        <p><pre>recovery.conf</pre></p>
+                        <pre><code>
+standby_mode = 'on'
+primary_conninfo = 'host=192.168.0.23 port=5432 user=replicator'
+</code></pre>
+                </section>
+            </section>
+
+                <section>
+                    <h4>But what if?</h4> 
+                    <p>What if there's a gap in processing - maybe a network problem - and the WAL files turn over before replication has read the transactions?</p>
+                    <div class="fragment">
+                    <pre><code>ERROR:  requested WAL segment 00000001000000010000002D 
+has already been removed</code></pre>
+                </div><br><div class="fragment"><p>With a streaming replica, you can always enable log-shipping as a fall-back plan.</p>
+                </div>
+                </section>
+
+            <section>
+                <section>
+                    <h4>Replication slots</h4>
+                    <p>Added in 9.4</p>
+                    <p>They give the Primary a <i>persistent</i> record of the state of replicas</p>
+                    <p class="fragment">This means that the primary will keep <b>ALL</b> WAL records until slot is received from.</p>
+
+                </section>
+
+                <section>
+                    <p>on primary</p>
+                    <pre><code>SELECT * FROM pg_create_physical_replication_slot('standby_replication_slot_alpha');</code></pre>
+                    <p><pre>postgresql.conf</pre></p>
+                    <pre><code>
+max_replication_slots = 5
+</code></pre>
+
+                    <p>on replica</p>
+                    <p><pre>recovery.conf</pre></p>
+                    <pre><code>
+primary_slot_name = 'standby_replication_slot_alpha'
+</code></pre>
+                </section>
+
+            </section>
+
+            <section>
+                <section>
+                <h3>Synchronous streaming replication</h3>
+                <p>Consider another what if.&nbsp;.&nbsp;.</p>
+                <p class="fragment">What if an outage occurs after a transaction is logged to the Primary, but before the replica has accepted it?</p>
+                <p class="fragment">We need a guaranty that the transaction has been written to one (or more than one) additional host.</p>
+                </section>
+                <section>
+                    <p>on primary</p>
+                    <p><pre>postgresql.conf</pre></p>
+                    <pre><code>
+synchronous_commit = on
+synchronous_standby_names = "1 (named_host1, named_host2)"
+</code></pre>
+                </section>
+            </section>
+                <section>
+                    <h3>Write latency</h3>
+                    <p>There is no formula to determine latency when syncronous replication is enabled. It is a function of your network conditions and the health and processing power of the available replicas</p>
+                </section>
+            </section>
+
+            <section>
+                <h3>Monitoring replication</h3>
+                <p>Basic monitoring is done on the Primary through <code>pg_stat_replication</code></p>
+                <p>Additional checks for lag can be done by writing scripts, or using <a href="https://bucardo.org/check_postgres/check_postgres.pl.html">check_postgres.pl</a></p>
+            </section>
+
+                <section data-transition="fade-in fade-out">
+                    <h3>Types of Replication</h3>
+                    <ul>
+                        <li>Streaming</li>
+                        <li>Synchronous Streaming</li>
+                        <li class="fragment grow">Logical (built-in to PG10)</li>
+                        <li>Other Methods</li>
+                    </ul>
+                </section>
+
+                <section data-transition="fade-in">
+                    <h3>Logical Replication</h3>
+                    <ul>
+                        <li>Ships differences based on a table&apos;s Primary Key</li>
+                        <li>Can ship only a sub-set of all relations on a cluster</li>
+                        <li>Does not ship byte-by-byte changes</li>
+                        <li>Works on a publisher/subscriber model</li>
+                    </ul>
+                </section>
+
+                <section data-transition="convex">
+                    <h4>Common use cases</h4>
+                    <p>From the introduction in <a href="https://www.postgresql.org/docs/10/static/logical-replication.html">the docs</a></p>
+                    <ul>
+    <li>Sending incremental changes in a single database or a subset of a database to subscribers as they occur.</li>
+    <li>Firing triggers for individual changes as they arrive on the subscriber.</li>
+    <li>Consolidating multiple databases into a single one (for example for analytical purposes).</li>
+                    </ul>
+                </section>
+                <section data-transition="convex">
+                    <h4>Use cases continued.&nbsp;.&nbsp;.</h4>
+                    <ul>
+    <li>Replicating between different major versions of PostgreSQL.</li>
+    <li>Giving access to replicated data to different groups of users.</li>
+    <li>Sharing a subset of the database between multiple databases.</li>
+                    </ul>
+                </section>
+
+                <section data-transition="fade-in">
+                    <h3>Subscribers are simply other instances</h3>
+                    <p>This means that the subscriber can write to other tables while still receiving updates from the subscription</p>
+                    <p>You can have any number of subscribers for a publication</p>
+                </section>
+
+                <section data-transition="fade-out">
+                    <h3>Limitations</h3>
+                    <ul>
+                        <li class="fragment">Schema alterations (DDL) are not published</li>
+                        <li class="fragment">Tables only - no materialized views, foreign tables, partition root tables</li>
+                        <li class="fragment">Sequential numbers are replicated but <i>the sequence</i> is not</li>
+                        <li class="fragment"><code>TRUNCATE</code> is not replicated</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Creating a Publication</h3>
+                    <p>Done through DDL on Publisher</p>
+                    <pre><code>CREATE PUBLICATION pub_one
+-- FOR ALL TABLES
+FOR TABLE accounts, users, order_*
+WITH (publish = 'insert, update, delete')
+;
+</code></pre>
+                </section>
+
+                <section>
+                    <h3>Altering a publication</h3>
+                    <p>Simply use <code>ALTER PUBLICATION</code></p>
+                    <code>ADD TABLE</code>, <code>DROP TABLE</code>, <code> OWNER TO</code>
+                </section>
+
+                <section>
+                    <h3>Creating a Subscription</h3>
+                    <p>A subscription requires a replication slot, but this is usually created for you, unless you specify <code>create_slot = false</code></p>
+                    <br>
+                    <pre><code>CREATE SUBSCRIPTION sub_one
+CONNECTION 'host=192.168.0.23 port=5432 user=somebody dbname=some_db'
+PUBLICATION pub_one
+-- WITH (enabled = false)
+;
+</code></pre>
+                </section>
+
+                <section data-transition="fade-out">
+                    <h3>Handling Conflict</h3>
+                    <p>A conflict on the local node will HALT replication. It must be corrected manually</p>
+                </section>
+
+                <section data-transition="fade-out fade-in">
+                    <h3>Other replication methods</h3>
+                    <p class="fragment">Trigger based logical: Slony, Bucardo, xDB</p>
+                    <p class="fragment">pgpool-ii streaming</p>
+                    <p class="fragment">File system</p>
+                </section>
+
+                <section data-transition="fade-out fade-in">
+                    <h3>Additional considerations</h3>
+                    <p class="fragment">Handling a failover event</p>
+                    <p class="fragment">Cascading replicas</p>
+                    <p class="fragment">Taking advantage of replicas for read-only queries</p>
+                    <p class="fragment">Building a datamart or reporting IDW</p>
+                </section>
+
+                <section data-transition="zoom">
+                    <h3>Thank you, #SCALE16x!</h3>
+                        <ul>
+                        <li>Follow me on Twitter <a href="https://twitter.com/epic_fil">@epic_fil</a></li>
+                        <li><a href="http://philvacca.com">http://philvacca.com</a></li>
+                        <li><a href="http://sixfortwo.com">http://sixfortwo.com</a></li>
+                    </ul>
+                    <br><br>
+                        <p>This presentation was built in <a href="https://github.com/hakimel/reveal.js">reveal.js</a></p>
+                    <h2>Be Seeing You!</h2><img src="../img/PennyFarthing.svg.png" align="right">
+                </section>
+
+            </div>
+
+        </div>
+
+        <script src="../reveal.js/lib/js/head.min.js"></script>
+        <script src="../reveal.js/js/reveal.js"></script>
+
+        <script>
+
+            // Full list of configuration options available at:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+
+                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+                // Optional reveal.js plugins
+                dependencies: [
+                    { src: '../reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: '../reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: '../reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: '../reveal.js/plugin/zoom-js/zoom.js', async: true },
+                    { src: '../reveal.js/plugin/notes/notes.js', async: true }
+                ]
+            });
+
+        </script>
+
+    <body>
+</body></html>
